@@ -88,7 +88,7 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
    * Create a journal entry with TMDB data
    * POST /api/journal-entries/create-with-tmdb
    */
-  async createWithTMDB(ctx) {
+  async createFromTMDB(ctx) {
     try {
       const { tmdb_id, type, ...journalData } = ctx.request.body.data;
 
