@@ -143,14 +143,14 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
       // Create journal entry
       const journalEntryData = {
         ...journalData,
-        media: mediaEntry.id,
+        media_item: mediaEntry.id,
         user: ctx.state.user?.id // Assuming user authentication
       };
 
       const journalEntry = await strapi.entityService.create('api::journal-entry.journal-entry', {
         data: journalEntryData,
         populate: {
-          media: true,
+          media_item: true,
           user: true
         }
       });
