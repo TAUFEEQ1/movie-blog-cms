@@ -2,13 +2,14 @@
  * Custom routes for journal-entry TMDB integration
  */
 
-module.exports = {
+export default {
   routes: [
     {
       method: 'GET',
       path: '/journal-entries/tmdb/search',
       handler: 'journal-entry.search',
       config: {
+        auth: false,
         policies: [],
         middlewares: [],
       },
@@ -18,6 +19,7 @@ module.exports = {
       path: '/journal-entries/tmdb/details/:type/:id',
       handler: 'journal-entry.getDetails',
       config: {
+        auth: false,
         policies: [],
         middlewares: [],
       },
