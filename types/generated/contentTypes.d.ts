@@ -687,6 +687,7 @@ export interface ApiJournalEntryJournalEntry
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     end_date: Schema.Attribute.Date;
+    episode: Schema.Attribute.Integer;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
