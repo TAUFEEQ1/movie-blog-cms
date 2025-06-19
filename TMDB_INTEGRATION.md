@@ -32,26 +32,31 @@ The following dependencies are required and already installed:
 ### Search Endpoints
 
 #### Search Movies and TV Shows
-```
+
+```bash
 GET /api/journal-entries/search?query=movie_name&type=all&page=1
 ```
 
 #### Search Movies Only
-```
+
+```bash
 GET /api/journal-entries/search?query=movie_name&type=movie&page=1
 ```
 
 #### Search TV Shows Only
-```
+
+```bash
 GET /api/journal-entries/search?query=show_name&type=tv&page=1
 ```
 
 **Parameters:**
+
 - `query` (required): Search term
 - `type` (optional): `movie`, `tv`, or `all` (default: `all`)
 - `page` (optional): Page number (default: 1)
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -83,16 +88,19 @@ GET /api/journal-entries/search?query=show_name&type=tv&page=1
 ### Detail Endpoints
 
 #### Get Movie Details
-```
+
+```bash
 GET /api/journal-entries/details/movie/872585
 ```
 
 #### Get TV Show Details
-```
+
+```bash
 GET /api/journal-entries/details/tv/1396
 ```
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -117,11 +125,13 @@ GET /api/journal-entries/details/tv/1396
 ### Journal Entry Creation
 
 #### Create Journal Entry with TMDB Data
-```
+
+```bash
 POST /api/journal-entries/create-with-tmdb
 ```
 
 **Request Body:**
+
 ```json
 {
   "data": {
@@ -136,6 +146,7 @@ POST /api/journal-entries/create-with-tmdb
 ```
 
 This endpoint will:
+
 1. Fetch detailed information from TMDB
 2. Create or find existing media entry
 3. Create the journal entry linked to the media
@@ -165,6 +176,7 @@ node scripts/test-tmdb.js
 ```
 
 This will test:
+
 - Movie search functionality
 - Movie details retrieval
 - TV show search
