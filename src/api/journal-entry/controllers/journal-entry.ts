@@ -85,66 +85,75 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
   },
 
   /**
-   * Create a journal entry with TMDB data
-   * POST /api/journal-entries/create-with-tmdb
+   * Create a journal entry with TMDB data (upsert media)
+   * POST /api/journal-entries/tmdb/create
    */
   async createFromTMDB(ctx) {
     try {
-      const { tmdb_id, type, ...journalData } = ctx.request.body.data;
+      const { tmdb, ...journalData } = ctx.request.body;
 
-      if (!tmdb_id || !type) {
-        return ctx.badRequest('TMDB ID and type are required');
+      if (!tmdb || !tmdb.id || !tmdb.type) {
+        return ctx.badRequest('TMDB data with id and type are required');
       }
 
-      // Get detailed information from TMDB
-      let tmdbDetails;
-      if (type === 'movie') {
-        tmdbDetails = await tmdbService.getMovieDetails(tmdb_id);
-      } else if (type === 'tv') {
-        tmdbDetails = await tmdbService.getTVShowDetails(tmdb_id);
-      } else {
-        return ctx.badRequest('Type must be either "movie" or "tv"');
-      }
+      // Normalize the media type
+      const mediaType = tmdb.type === 'tv' ? 'tv_series' : 'movies';
 
-      // Check if media entry already exists
+      // Check if media entry already exists by TMDB ID
       const existingMedia = await strapi.entityService.findMany('api::media.media', {
         filters: {
-          tmdb_id: tmdb_id,
-          type: type
+          tmdbId: tmdb.id,
+          type: mediaType
         },
         limit: 1
       });
 
       let mediaEntry;
 
-      // Create media entry if it doesn't exist
       if (!existingMedia || existingMedia.length === 0) {
+        // Create new media entry with TMDB data
         const mediaData = {
-          title: type === 'movie' ? tmdbDetails.title : tmdbDetails.name,
-          overview: tmdbDetails.overview,
-          release_date: type === 'movie' ? tmdbDetails.release_date : tmdbDetails.first_air_date,
-          poster_url: tmdbDetails.poster_url,
-          backdrop_url: tmdbDetails.backdrop_url,
-          tmdb_id: tmdb_id,
-          type: (type === 'movie' ? 'movies' : 'tv_series') as 'movies' | 'tv_series',
-          genres: tmdbDetails.genres?.map((g: any) => g.name).join(', ') || '',
-          rating: tmdbDetails.vote_average || 0,
-          runtime: type === 'movie' ? tmdbDetails.runtime : null,
-          status: tmdbDetails.status || 'Released'
+          title: tmdb.title || tmdb.name,
+          synopsis: tmdb.overview || '',
+          releaseDate: tmdb.release_date || tmdb.first_air_date,
+          poster_path: tmdb.poster_path,
+          tmdbId: tmdb.id,
+          type: mediaType as 'movies' | 'tv_series',
+          tmdb_average_rating: tmdb.vote_average || 0,
+          tmdb_vote_count: tmdb.vote_count || 0,
+          runtime: tmdb.runtime || null,
+          release_status: 'released' as 'released' | 'upcoming' // Default status
         };
 
         mediaEntry = await strapi.entityService.create('api::media.media', {
           data: mediaData
         });
+
+        strapi.log.info(`Created new media entry: ${mediaData.title} (TMDB ID: ${tmdb.id})`);
       } else {
+        // Use existing media entry
         mediaEntry = existingMedia[0];
+        strapi.log.info(`Using existing media entry: ${mediaEntry.title} (TMDB ID: ${tmdb.id})`);
+        
+        // Optionally update the existing media with fresh TMDB data
+        const updatedMediaData = {
+          title: tmdb.title || tmdb.name,
+          synopsis: tmdb.overview || mediaEntry.synopsis,
+          poster_path: tmdb.poster_path || mediaEntry.poster_path,
+          tmdb_average_rating: tmdb.vote_average || mediaEntry.tmdb_average_rating,
+          tmdb_vote_count: tmdb.vote_count || mediaEntry.tmdb_vote_count
+        };
+
+        mediaEntry = await strapi.entityService.update('api::media.media', mediaEntry.id, {
+          data: updatedMediaData
+        });
       }
 
-      // Create journal entry
+      // Create journal entry linked to the media
       const journalEntryData = {
         ...journalData,
         media_item: mediaEntry.id,
-        user: ctx.state.user?.id // Assuming user authentication
+        user: ctx.state.user?.id
       };
 
       const journalEntry = await strapi.entityService.create('api::journal-entry.journal-entry', {
@@ -156,10 +165,14 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
       });
 
       ctx.body = {
-        data: journalEntry
+        data: journalEntry,
+        meta: {
+          mediaCreated: !existingMedia || existingMedia.length === 0
+        }
       };
     } catch (error) {
       console.error('Create with TMDB error:', error);
+      strapi.log.error('Failed to create journal entry with TMDB data', error);
       ctx.internalServerError('Failed to create journal entry with TMDB data');
     }
   }
