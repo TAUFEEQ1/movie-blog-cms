@@ -721,7 +721,7 @@ export interface ApiJournalEntryJournalEntry
       'plugin::users-permissions.user'
     >;
     watch_status: Schema.Attribute.Enumeration<
-      ['watched', 'rewatched', 'planned_to_watch', 'dropped']
+      ['watched', 'rewatched', 'planned_to_watch', 'dropped', 'paused']
     > &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'watched'>;

@@ -210,15 +210,20 @@ class TMDBService {
   }
 
   /**
-   * Get detailed movie information
+   * Get detailed movie information with trailer
    */
   async getMovieDetails(movieId: number): Promise<any> {
     try {
-      const movie = await this.makeRequest(`/movie/${movieId}`);
+      const [movie, trailerUrl] = await Promise.all([
+        this.makeRequest(`/movie/${movieId}`),
+        this.getMovieTrailer(movieId)
+      ]);
+      
       return {
         ...movie,
         poster_url: this.getImageUrl(movie.poster_path),
         backdrop_url: this.getImageUrl(movie.backdrop_path),
+        trailer_url: trailerUrl,
         type: 'movie'
       };
     } catch (error) {
@@ -228,21 +233,131 @@ class TMDBService {
   }
 
   /**
-   * Get detailed TV show information
+   * Get detailed TV show information with trailer
    */
   async getTVShowDetails(tvId: number): Promise<any> {
     try {
-      const show = await this.makeRequest(`/tv/${tvId}`);
+      const [show, trailerUrl] = await Promise.all([
+        this.makeRequest(`/tv/${tvId}`),
+        this.getTVShowTrailer(tvId)
+      ]);
+      
       return {
         ...show,
         poster_url: this.getImageUrl(show.poster_path),
         backdrop_url: this.getImageUrl(show.backdrop_path),
+        trailer_url: trailerUrl,
         type: 'tv'
       };
     } catch (error) {
       console.error('TMDB TV details error:', error);
       throw new Error('Failed to get TV show details');
     }
+  }
+
+  /**
+   * Get movie trailer URL
+   */
+  async getMovieTrailer(movieId: number): Promise<string | null> {
+    try {
+      const response = await this.makeRequest(`/movie/${movieId}/videos`);
+      
+      if (!response.results || response.results.length === 0) {
+        return null;
+      }
+
+      // First, try to find an official trailer
+      let trailer = response.results.find((video: any) => 
+        video.type === 'Trailer' && 
+        video.site === 'YouTube' && 
+        video.official === true
+      );
+
+      // If no official trailer found, fallback to any trailer
+      if (!trailer) {
+        trailer = response.results.find((video: any) => 
+          video.type === 'Trailer' && video.site === 'YouTube'
+        );
+      }
+
+      return trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null;
+    } catch (error) {
+      console.error('TMDB movie trailer error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get TV show trailer URL
+   */
+  async getTVShowTrailer(tvId: number): Promise<string | null> {
+    try {
+      const response = await this.makeRequest(`/tv/${tvId}/videos`);
+      
+      if (!response.results || response.results.length === 0) {
+        return null;
+      }
+
+      // First, try to find an official trailer
+      let trailer = response.results.find((video: any) => 
+        video.type === 'Trailer' && 
+        video.site === 'YouTube' && 
+        video.official === true
+      );
+
+      // If no official trailer found, fallback to any trailer
+      if (!trailer) {
+        trailer = response.results.find((video: any) => 
+          video.type === 'Trailer' && video.site === 'YouTube'
+        );
+      }
+
+      return trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null;
+    } catch (error) {
+      console.error('TMDB TV trailer error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get detailed movie information with trailer
+   */
+  async getMovieDetailsWithTrailer(movieId: number): Promise<any> {
+    try {
+      const movie = await this.getMovieDetails(movieId);
+      const trailer = await this.getMovieTrailer(movieId);
+      return {
+        ...movie,
+        trailer_url: trailer
+      };
+    } catch (error) {
+      console.error('TMDB movie details with trailer error:', error);
+      throw new Error('Failed to get movie details with trailer');
+    }
+  }
+
+  /**
+   * Get detailed TV show information with trailer
+   */
+  async getTVShowDetailsWithTrailer(tvId: number): Promise<any> {
+    try {
+      const show = await this.getTVShowDetails(tvId);
+      const trailer = await this.getTVShowTrailer(tvId);
+      return {
+        ...show,
+        trailer_url: trailer
+      };
+    } catch (error) {
+      console.error('TMDB TV details with trailer error:', error);
+      throw new Error('Failed to get TV show details with trailer');
+    }
+  }
+
+  /**
+   * Get genre names from TMDB genre IDs
+   */
+  getGenreNamesFromIds(genreIds: number[]): string[] {
+    return this.getGenreNames(genreIds);
   }
 }
 

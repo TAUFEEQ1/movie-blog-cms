@@ -34,7 +34,8 @@
         "watched",
         "rewatched",
         "planned_to_watch",
-        "dropped"
+        "dropped",
+        "paused"
       ]
     },
     "my_rating": {

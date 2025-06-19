@@ -108,9 +108,76 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
         limit: 1
       });
 
+      // Get detailed information including trailer from TMDB for both new and existing media
+      let detailedInfo;
+      try {
+        if (tmdb.type === 'movie') {
+          detailedInfo = await tmdbService.getMovieDetails(tmdb.id);
+        } else {
+          detailedInfo = await tmdbService.getTVShowDetails(tmdb.id);
+        }
+      } catch (error) {
+        console.error('Failed to get detailed TMDB info:', error);
+        detailedInfo = null;
+      }
+
       let mediaEntry;
 
       if (!existingMedia || existingMedia.length === 0) {
+        // Handle genres - find or create them
+        let genreIds: string[] = [];
+        if (tmdb.genres && Array.isArray(tmdb.genres)) {
+          // If genres are objects with name/id
+          for (const genre of tmdb.genres) {
+            const genreName = typeof genre === 'string' ? genre : genre.name;
+            if (genreName) {
+              // Check if genre exists
+              let existingGenre = await strapi.entityService.findMany('api::genre.genre', {
+                filters: { name: genreName },
+                limit: 1
+              });
+
+              if (!existingGenre || existingGenre.length === 0) {
+                // Create new genre
+                const newGenre = await strapi.entityService.create('api::genre.genre', {
+                  data: {
+                    name: genreName,
+                    slug: genreName.toLowerCase().replace(/\s+/g, '-')
+                  }
+                });
+                genreIds.push(newGenre.id as string);
+              } else {
+                genreIds.push(existingGenre[0].id as string);
+              }
+            }
+          }
+        } else if (tmdb.genre_ids && Array.isArray(tmdb.genre_ids)) {
+          // If we have genre IDs from search results, convert them to names
+          const genreNames = tmdbService.getGenreNamesFromIds(tmdb.genre_ids);
+          for (const genreName of genreNames) {
+            if (genreName) {
+              // Check if genre exists
+              let existingGenre = await strapi.entityService.findMany('api::genre.genre', {
+                filters: { name: genreName },
+                limit: 1
+              });
+
+              if (!existingGenre || existingGenre.length === 0) {
+                // Create new genre
+                const newGenre = await strapi.entityService.create('api::genre.genre', {
+                  data: {
+                    name: genreName,
+                    slug: genreName.toLowerCase().replace(/\s+/g, '-')
+                  }
+                });
+                genreIds.push(newGenre.id as string);
+              } else {
+                genreIds.push(existingGenre[0].id as string);
+              }
+            }
+          }
+        }
+
         // Create new media entry with TMDB data
         const mediaData = {
           title: tmdb.title || tmdb.name,
@@ -119,17 +186,33 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
           poster_path: tmdb.poster_path,
           tmdbId: tmdb.id,
           type: mediaType as 'movies' | 'tv_series',
-          tmdb_average_rating: tmdb.vote_average || 0,
-          tmdb_vote_count: tmdb.vote_count || 0,
-          runtime: tmdb.runtime || null,
-          release_status: 'released' as 'released' | 'upcoming' // Default status
+          tmdb_average_rating: detailedInfo?.vote_average || tmdb.vote_average || 0,
+          tmdb_vote_count: detailedInfo?.vote_count || tmdb.vote_count || 0,
+          runtime: tmdb.runtime || detailedInfo?.runtime || null,
+          release_status: 'released' as 'released' | 'upcoming',
+          trailerUrl: detailedInfo?.trailer_url || null
         };
+
 
         mediaEntry = await strapi.entityService.create('api::media.media', {
           data: mediaData
         });
 
-        strapi.log.info(`Created new media entry: ${mediaData.title} (TMDB ID: ${tmdb.id})`);
+        // Link genres using relation helper if any genres exist
+        if (genreIds.length > 0) {
+          for (const genreId of genreIds) {
+            await strapi.db.query('api::media.media').update({
+              where: { id: mediaEntry.id },
+              data: {
+                genres: {
+                  connect: [genreId]
+                }
+              }
+            });
+          }
+        }
+
+        strapi.log.info(`Created new media entry: ${mediaData.title} (TMDB ID: ${tmdb.id}) with ${genreIds.length} genres`);
       } else {
         // Use existing media entry
         mediaEntry = existingMedia[0];
@@ -140,8 +223,8 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
           title: tmdb.title || tmdb.name,
           synopsis: tmdb.overview || mediaEntry.synopsis,
           poster_path: tmdb.poster_path || mediaEntry.poster_path,
-          tmdb_average_rating: tmdb.vote_average || mediaEntry.tmdb_average_rating,
-          tmdb_vote_count: tmdb.vote_count || mediaEntry.tmdb_vote_count
+          tmdb_average_rating: detailedInfo?.vote_average || tmdb.vote_average || mediaEntry.tmdb_average_rating,
+          tmdb_vote_count: detailedInfo?.vote_count || tmdb.vote_count || mediaEntry.tmdb_vote_count
         };
 
         mediaEntry = await strapi.entityService.update('api::media.media', mediaEntry.id, {
@@ -150,16 +233,66 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
       }
 
       // Create journal entry linked to the media
+      // Filter out inappropriate fields based on media type and clean up empty values
+      const filteredJournalData = { ...journalData };
+      
+      // Helper function to clean up empty date values
+      const cleanDateField = (value: any) => {
+        if (!value || (typeof value === 'string' && value.trim() === '')) {
+          return undefined;
+        }
+        return value;
+      };
+      
+      // Clean up date fields - remove empty strings and null values
+      filteredJournalData.watched_date = cleanDateField(filteredJournalData.watched_date);
+      filteredJournalData.start_date = cleanDateField(filteredJournalData.start_date);
+      filteredJournalData.end_date = cleanDateField(filteredJournalData.end_date);
+      
+      // Clean up other optional fields
+      if (!filteredJournalData.title || filteredJournalData.title.trim() === '') {
+        delete filteredJournalData.title;
+      }
+      
+      if (!filteredJournalData.notes_reflections || filteredJournalData.notes_reflections.trim() === '') {
+        delete filteredJournalData.notes_reflections;
+      }
+      
+      if (!filteredJournalData.my_rating || filteredJournalData.my_rating <= 0) {
+        delete filteredJournalData.my_rating;
+      }
+      
+      if (!filteredJournalData.season_number || filteredJournalData.season_number <= 0) {
+        delete filteredJournalData.season_number;
+      }
+      
+      // For movies, remove start_date and end_date as they're only for TV series
+      if (mediaType === 'movies') {
+        delete filteredJournalData.start_date;
+        delete filteredJournalData.end_date;
+        delete filteredJournalData.season_number;
+      }
+      
+      // For planned_to_watch entries, don't require watched_date
+      if (filteredJournalData.watch_status === 'planned_to_watch') {
+        delete filteredJournalData.watched_date;
+        // For planned entries, start_date can be used as planned_date
+      }
+      
       const journalEntryData = {
-        ...journalData,
-        media_item: mediaEntry.id,
+        ...filteredJournalData,
+        media_item: mediaEntry,
         user: ctx.state.user?.id
       };
 
       const journalEntry = await strapi.entityService.create('api::journal-entry.journal-entry', {
         data: journalEntryData,
         populate: {
-          media_item: true,
+          media_item: {
+            populate: {
+              genres: true
+            }
+          },
           user: true
         }
       });
@@ -174,6 +307,67 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
       console.error('Create with TMDB error:', error);
       strapi.log.error('Failed to create journal entry with TMDB data', error);
       ctx.internalServerError('Failed to create journal entry with TMDB data');
+    }
+  },
+
+  /**
+   * Override default update to handle empty date values
+   * PUT /api/journal-entries/:id
+   */
+  async update(ctx) {
+    try {
+      const { data } = ctx.request.body;
+      
+      if (!data) {
+        return ctx.badRequest('No data provided for update');
+      }
+      
+      // Helper function to clean up empty date values
+      const cleanDateField = (value: any) => {
+        if (!value || (typeof value === 'string' && value.trim() === '')) {
+          return undefined;
+        }
+        return value;
+      };
+      
+      // Clean the update data
+      const cleanedData = { ...data };
+      
+      // Clean up date fields - remove empty strings and null values
+      cleanedData.watched_date = cleanDateField(cleanedData.watched_date);
+      cleanedData.start_date = cleanDateField(cleanedData.start_date);
+      cleanedData.end_date = cleanDateField(cleanedData.end_date);
+      
+      // Clean up other optional fields
+      if (cleanedData.title && cleanedData.title.trim() === '') {
+        delete cleanedData.title;
+      }
+      
+      if (cleanedData.notes_reflections && cleanedData.notes_reflections.trim() === '') {
+        delete cleanedData.notes_reflections;
+      }
+      
+      if (cleanedData.my_rating && cleanedData.my_rating <= 0) {
+        delete cleanedData.my_rating;
+      }
+      
+      if (cleanedData.season_number && cleanedData.season_number <= 0) {
+        delete cleanedData.season_number;
+      }
+      
+      // Remove undefined fields to avoid overwriting existing data with null
+      Object.keys(cleanedData).forEach(key => {
+        if (cleanedData[key] === undefined) {
+          delete cleanedData[key];
+        }
+      });
+      
+      // Call the default update method with cleaned data
+      ctx.request.body.data = cleanedData;
+      return await super.update(ctx);
+    } catch (error) {
+      console.error('Update journal entry error:', error);
+      ctx.internalServerError('Failed to update journal entry');
     }
   }
 }));
