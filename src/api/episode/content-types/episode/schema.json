@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "episodes",
+  "info": {
+    "singularName": "episode",
+    "pluralName": "episodes",
+    "displayName": "Episode"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "episode_number": {
+      "type": "integer"
+    },
+    "season_number": {
+      "type": "integer"
+    },
+    "air_date": {
+      "type": "date"
+    },
+    "synopsis": {
+      "type": "text"
+    },
+    "tmdbId": {
+      "type": "integer"
+    },
+    "tmdb_average_rating": {
+      "type": "decimal"
+    },
+    "tmdb_vote_count": {
+      "type": "integer"
+    },
+    "media": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::media.media",
+      "inversedBy": "episodes"
+    },
+    "quotes": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::quote.quote",
+      "mappedBy": "episode"
+    }
+  }
+}

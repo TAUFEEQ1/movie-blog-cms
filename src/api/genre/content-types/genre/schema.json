@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "genres",
+  "info": {
+    "singularName": "genre",
+    "pluralName": "genres",
+    "displayName": "Genre"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "slug": {
+      "type": "uid"
+    },
+    "media": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::media.media",
+      "inversedBy": "genres"
+    }
+  }
+}

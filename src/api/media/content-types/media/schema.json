@@ -1,0 +1,113 @@
+{
+  "kind": "collectionType",
+  "collectionName": "medias",
+  "info": {
+    "singularName": "media",
+    "pluralName": "medias",
+    "displayName": "Media"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "uid"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "movies",
+        "tv_series"
+      ]
+    },
+    "poster_path": {
+      "type": "string"
+    },
+    "synopsis": {
+      "type": "text"
+    },
+    "releaseDate": {
+      "type": "date"
+    },
+    "runtime": {
+      "type": "integer"
+    },
+    "number_of_seasons": {
+      "type": "integer"
+    },
+    "is_ongoing": {
+      "type": "boolean"
+    },
+    "last_air_date": {
+      "type": "date"
+    },
+    "trailerUrl": {
+      "type": "string"
+    },
+    "tmdbId": {
+      "type": "integer"
+    },
+    "tmdb_average_rating": {
+      "type": "decimal"
+    },
+    "tmdb_vote_count": {
+      "type": "integer"
+    },
+    "release_status": {
+      "type": "enumeration",
+      "enum": [
+        "released",
+        "upcoming"
+      ]
+    },
+    "upcoming_release_date": {
+      "type": "date"
+    },
+    "cast": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::person.person",
+      "inversedBy": "cast_in"
+    },
+    "genres": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::genre.genre",
+      "mappedBy": "media"
+    },
+    "franchise": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::franchise.franchise",
+      "inversedBy": "media"
+    },
+    "episodes": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::episode.episode",
+      "mappedBy": "media"
+    },
+    "journal_entries": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::journal-entry.journal-entry",
+      "mappedBy": "media_item"
+    },
+    "quotes": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::quote.quote",
+      "mappedBy": "media"
+    },
+    "special_moments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::special-moment.special-moment",
+      "mappedBy": "media"
+    }
+  }
+}
