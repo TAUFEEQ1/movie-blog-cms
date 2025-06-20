@@ -10,6 +10,8 @@
     "dev": "strapi develop",
     "develop": "strapi develop",
     "seed:example": "node ./scripts/seed.js",
+    "cleanup:trending": "node ./scripts/cleanup-trending.js",
+    "test:cleanup": "node ./scripts/test-cleanup.js",
     "start": "strapi start",
     "strapi": "strapi",
     "upgrade": "npx @strapi/upgrade latest",
