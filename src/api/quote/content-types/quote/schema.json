@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "quotes",
+  "info": {
+    "singularName": "quote",
+    "pluralName": "quotes",
+    "displayName": "Quote"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "text": {
+      "type": "text"
+    },
+    "character_name": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "journal_entry": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::journal-entry.journal-entry",
+      "inversedBy": "quotes"
+    },
+    "episode": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::episode.episode",
+      "inversedBy": "quotes"
+    },
+    "media": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::media.media",
+      "inversedBy": "quotes"
+    }
+  }
+}

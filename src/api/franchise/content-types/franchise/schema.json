@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "franchises",
+  "info": {
+    "singularName": "franchise",
+    "pluralName": "franchises",
+    "displayName": "Franchise"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "uid"
+    },
+    "description": {
+      "type": "text"
+    },
+    "media": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::media.media",
+      "mappedBy": "franchise"
+    }
+  }
+}

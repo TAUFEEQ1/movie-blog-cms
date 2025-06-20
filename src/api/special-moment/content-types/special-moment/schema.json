@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "special_moments",
+  "info": {
+    "singularName": "special-moment",
+    "pluralName": "special-moments",
+    "displayName": "SpecialMoment"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "description": {
+      "type": "text"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "journal_entry": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::journal-entry.journal-entry",
+      "inversedBy": "special_moments"
+    },
+    "media": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::media.media",
+      "inversedBy": "special_moments"
+    }
+  }
+}
