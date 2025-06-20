@@ -5,8 +5,47 @@
 import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::trending.trending', ({ strapi }) => ({
-  // Extend default controller with custom methods
-  ...factories.createCoreController('api::trending.trending'),
+  // Override the default find method to disable pagination and return all items
+  async find(ctx: any) {
+    try {
+      // Parse query parameters
+      const { type, platform } = ctx.request.query;
+      
+      const filters: any = {};
+
+      if (type && ['movie', 'tv'].includes(type as string)) {
+        filters.type = type;
+      }
+
+      if (platform && typeof platform === 'string') {
+        filters.platform = platform;
+      }
+
+      // Fetch all trending items without pagination
+      const entities = await strapi.entityService.findMany('api::trending.trending', {
+        filters,
+        sort: [{ trending_rank: 'asc' }, { trending_score: 'desc' }],
+        limit: 1000, // Set a high limit to get all items
+        populate: '*'
+      });
+
+      // Return in the format expected by the frontend
+      return {
+        data: entities,
+        meta: {
+          pagination: {
+            page: 1,
+            pageSize: entities.length,
+            pageCount: 1,
+            total: entities.length
+          }
+        }
+      };
+    } catch (error) {
+      strapi.log.error('Error fetching trending items:', error);
+      return ctx.internalServerError('Unable to fetch trending items');
+    }
+  },
 
   /**
    * Get active trending items with optional filtering
