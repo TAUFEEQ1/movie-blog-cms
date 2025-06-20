@@ -1,0 +1,106 @@
+{
+  "kind": "collectionType",
+  "collectionName": "trendings",
+  "info": {
+    "singularName": "trending",
+    "pluralName": "trendings",
+    "displayName": "Trending",
+    "description": "Trending movies and TV shows data for consumption by UI"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "tmdb_id": {
+      "type": "integer",
+      "required": true,
+      "unique": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "movie",
+        "tv"
+      ],
+      "required": true
+    },
+    "platform": {
+      "type": "string",
+      "required": true
+    },
+    "tmdb_rating": {
+      "type": "decimal",
+      "min": 0,
+      "max": 10
+    },
+    "tmdb_vote_count": {
+      "type": "integer",
+      "min": 0
+    },
+    "genres": {
+      "type": "json",
+      "required": false
+    },
+    "poster_path": {
+      "type": "string",
+      "required": false
+    },
+    "backdrop_path": {
+      "type": "string",
+      "required": false
+    },
+    "release_year": {
+      "type": "integer",
+      "min": 1800,
+      "max": 2100
+    },
+    "release_date": {
+      "type": "date"
+    },
+    "trailer_url": {
+      "type": "string",
+      "required": false
+    },
+    "overview": {
+      "type": "text"
+    },
+    "runtime": {
+      "type": "integer",
+      "min": 0
+    },
+    "language": {
+      "type": "string",
+      "default": "en"
+    },
+    "popularity": {
+      "type": "decimal",
+      "min": 0
+    },
+    "trending_score": {
+      "type": "decimal",
+      "min": 0,
+      "max": 100
+    },
+    "trending_rank": {
+      "type": "integer",
+      "min": 1
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "expires_at": {
+      "type": "datetime",
+      "required": false
+    },
+    "metadata": {
+      "type": "json",
+      "required": false
+    }
+  }
+}

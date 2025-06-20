@@ -888,6 +888,103 @@ export interface ApiSpecialMomentSpecialMoment
   };
 }
 
+export interface ApiTrendingTrending extends Struct.CollectionTypeSchema {
+  collectionName: 'trendings';
+  info: {
+    description: 'Trending movies and TV shows data for consumption by UI';
+    displayName: 'Trending';
+    pluralName: 'trendings';
+    singularName: 'trending';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    backdrop_path: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    expires_at: Schema.Attribute.DateTime;
+    genres: Schema.Attribute.JSON;
+    is_active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    language: Schema.Attribute.String & Schema.Attribute.DefaultTo<'en'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::trending.trending'
+    > &
+      Schema.Attribute.Private;
+    metadata: Schema.Attribute.JSON;
+    overview: Schema.Attribute.Text;
+    platform: Schema.Attribute.String & Schema.Attribute.Required;
+    popularity: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    poster_path: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    release_date: Schema.Attribute.Date;
+    release_year: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 2100;
+          min: 1800;
+        },
+        number
+      >;
+    runtime: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    tmdb_id: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    tmdb_rating: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 10;
+          min: 0;
+        },
+        number
+      >;
+    tmdb_vote_count: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    trailer_url: Schema.Attribute.String;
+    trending_rank: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
+    trending_score: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      >;
+    type: Schema.Attribute.Enumeration<['movie', 'tv']> &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface PluginContentReleasesRelease
   extends Struct.CollectionTypeSchema {
   collectionName: 'strapi_releases';
@@ -1414,6 +1511,7 @@ declare module '@strapi/strapi' {
       'api::person.person': ApiPersonPerson;
       'api::quote.quote': ApiQuoteQuote;
       'api::special-moment.special-moment': ApiSpecialMomentSpecialMoment;
+      'api::trending.trending': ApiTrendingTrending;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;
