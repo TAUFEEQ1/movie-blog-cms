@@ -73,6 +73,9 @@
     },
     "episode": {
       "type": "integer"
+    },
+    "total_episodes": {
+      "type": "integer"
     }
   }
 }

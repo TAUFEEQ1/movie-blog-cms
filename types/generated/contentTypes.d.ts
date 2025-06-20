@@ -714,6 +714,7 @@ export interface ApiJournalEntryJournalEntry
     >;
     start_date: Schema.Attribute.Date;
     title: Schema.Attribute.String;
+    total_episodes: Schema.Attribute.Integer;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

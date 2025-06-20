@@ -276,6 +276,10 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
       if (!filteredJournalData.episode || filteredJournalData.episode <= 0) {
         delete filteredJournalData.episode;
       }
+
+      if (!filteredJournalData.total_episodes || filteredJournalData.total_episodes <= 0) {
+        delete filteredJournalData.total_episodes;
+      }
       
       // For movies, remove start_date and end_date as they're only for TV series
       if (mediaType === 'movies') {
@@ -283,6 +287,7 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
         delete filteredJournalData.end_date;
         delete filteredJournalData.season_number;
         delete filteredJournalData.episode;
+        delete filteredJournalData.total_episodes;
       }
       
       // For planned_to_watch entries, don't require watched_date
@@ -323,7 +328,7 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
   },
 
   /**
-   * Override default update to handle empty date values
+   * Override default update to handle empty date values and validation
    * PUT /api/journal-entries/:id
    */
   async update(ctx) {
@@ -334,23 +339,7 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
         return ctx.badRequest('No data provided for update');
       }
 
-      // Get the existing entry to check media type for validation
-      const entryId = ctx.params.id;
-      const existingEntry = await strapi.entityService.findOne('api::journal-entry.journal-entry', entryId, {
-        populate: { media_item: true }
-      }) as (typeof ctx.request.body & { media_item?: { type?: string } });
-
-      if (!existingEntry) {
-        return ctx.notFound('Journal entry not found');
-      }
-
-      // Validate episode field for paused TV series
-      if (existingEntry.media_item?.type === 'tv_series' && 
-          data.watch_status === 'paused' && 
-          (!data.episode || data.episode <= 0)) {
-        return ctx.badRequest('Episode number is required for paused TV series');
-      }
-      
+      // First, let's try the default update process and add validation as a pre-hook
       // Helper function to clean up empty date values
       const cleanDateField = (value: any) => {
         if (!value || (typeof value === 'string' && value.trim() === '')) {
@@ -387,6 +376,10 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
       if (cleanedData.episode && cleanedData.episode <= 0) {
         delete cleanedData.episode;
       }
+
+      if (cleanedData.total_episodes && cleanedData.total_episodes <= 0) {
+        delete cleanedData.total_episodes;
+      }
       
       // Remove undefined fields to avoid overwriting existing data with null
       Object.keys(cleanedData).forEach(key => {
@@ -394,12 +387,25 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
           delete cleanedData[key];
         }
       });
+
+      // For episode validation, we'll do a simple check without complex lookups
+      // If it's a paused status and episode is being set, validate it exists
+      if (cleanedData.watch_status === 'paused' && 
+          cleanedData.episode !== undefined && 
+          (!cleanedData.episode || cleanedData.episode <= 0)) {
+        return ctx.badRequest('Episode number must be greater than 0 for paused entries');
+      }
       
       // Call the default update method with cleaned data
       ctx.request.body.data = cleanedData;
       return await super.update(ctx);
     } catch (error) {
       console.error('Update journal entry error:', error);
+      console.error('Error details:', {
+        params: ctx.params,
+        body: ctx.request.body,
+        stack: error.stack
+      });
       ctx.internalServerError('Failed to update journal entry');
     }
   }
