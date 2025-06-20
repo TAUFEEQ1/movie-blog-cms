@@ -1,0 +1,55 @@
+{
+  "kind": "collectionType",
+  "collectionName": "trending_ratings",
+  "info": {
+    "singularName": "trending-rating",
+    "pluralName": "trending-ratings",
+    "displayName": "Trending Rating",
+    "description": "User ratings and comments for trending movies and TV shows"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "trending": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::trending.trending"
+    },
+    "tmdb_id": {
+      "type": "integer",
+      "required": true
+    },
+    "rating": {
+      "type": "decimal",
+      "required": true,
+      "min": 1,
+      "max": 10
+    },
+    "comment": {
+      "type": "text"
+    },
+    "is_notable": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_unfavorable": {
+      "type": "boolean",
+      "default": false
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "movie",
+        "tv"
+      ],
+      "required": true
+    }
+  }
+}

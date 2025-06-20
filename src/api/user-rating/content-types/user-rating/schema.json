@@ -1,0 +1,94 @@
+{
+  "kind": "collectionType",
+  "collectionName": "user_ratings",
+  "info": {
+    "singularName": "user-rating",
+    "pluralName": "user-ratings",
+    "displayName": "User Rating",
+    "description": "User ratings for trending and coming soon entries"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "tmdb_id": {
+      "type": "integer",
+      "required": true
+    },
+    "content_type": {
+      "type": "enumeration",
+      "enum": ["trending", "coming_soon"],
+      "required": true
+    },
+    "media_type": {
+      "type": "enumeration",
+      "enum": ["movie", "tv"],
+      "required": true
+    },
+    "rating": {
+      "type": "decimal",
+      "required": true,
+      "min": 1,
+      "max": 10
+    },
+    "comment": {
+      "type": "text",
+      "required": false
+    },
+    "is_notable": {
+      "type": "boolean",
+      "default": false,
+      "required": false
+    },
+    "is_unfavorable": {
+      "type": "boolean",
+      "default": false,
+      "required": false
+    },
+    "is_watchlisted": {
+      "type": "boolean",
+      "default": false,
+      "required": false
+    },
+    "watched_date": {
+      "type": "datetime",
+      "required": false
+    },
+    "rewatch_count": {
+      "type": "integer",
+      "default": 0,
+      "required": false
+    },
+    "tags": {
+      "type": "json",
+      "required": false
+    },
+    "mood_rating": {
+      "type": "enumeration",
+      "enum": ["excited", "interested", "neutral", "disappointed", "avoid"],
+      "required": false
+    },
+    "anticipation_level": {
+      "type": "integer",
+      "min": 1,
+      "max": 5,
+      "required": false
+    },
+    "recommendation_score": {
+      "type": "decimal",
+      "min": 0,
+      "max": 10,
+      "required": false
+    },
+    "metadata": {
+      "type": "json",
+      "required": false
+    }
+  }
+}
