@@ -22,15 +22,15 @@ async function testCleanup() {
   console.log('🧪 Testing trending cleanup functionality...\n');
   
   try {
-    const CLEANUP_OLDER_THAN_HOURS = 24;
+    const CLEANUP_OLDER_THAN_HOURS = 36;
     const cutoffDate = new Date();
     cutoffDate.setHours(cutoffDate.getHours() - CLEANUP_OLDER_THAN_HOURS);
     
     console.log(`📅 Cutoff date: ${cutoffDate.toISOString()}`);
     console.log(`🔍 Looking for entries older than ${CLEANUP_OLDER_THAN_HOURS} hours...\n`);
 
-    // Test 1: Check for old entries based on createdAt
-    console.log('Test 1: Checking for time-based cleanup candidates...');
+    // Test 1: Check for old entries based on createdAt (only criteria now)
+    console.log('Test 1: Checking for time-based cleanup candidates (createdAt only)...');
     
     const oldEntriesResponse = await axios.get(`${STRAPI_URL}/api/trendings`, {
       headers: {
@@ -46,8 +46,8 @@ async function testCleanup() {
     const oldEntries = oldEntriesResponse.data.data || [];
     console.log(`   Found ${oldEntries.length} entries older than ${CLEANUP_OLDER_THAN_HOURS} hours`);
 
-    // Test 2: Check for expired entries
-    console.log('\nTest 2: Checking for expired entries (expires_at)...');
+    // Test 2: Check for expired entries (informational only - not used for cleanup)
+    console.log('\nTest 2: Checking for expired entries (expires_at) - informational only...');
     
     const expiredEntriesResponse = await axios.get(`${STRAPI_URL}/api/trendings`, {
       headers: {
@@ -61,7 +61,7 @@ async function testCleanup() {
     });
 
     const expiredEntries = expiredEntriesResponse.data.data || [];
-    console.log(`   Found ${expiredEntries.length} entries with expired expires_at timestamps`);
+    console.log(`   Found ${expiredEntries.length} entries with expired expires_at timestamps (not used for cleanup)`);
 
     // Test 3: Check for inactive entries
     console.log('\nTest 3: Checking for inactive entries...');
@@ -100,11 +100,11 @@ async function testCleanup() {
     console.log('\n📊 Cleanup Test Summary:');
     console.log('========================');
     console.log(`Total entries: ${totalEntries}`);
-    console.log(`Old entries (>24h): ${oldEntries.length}`);
-    console.log(`Expired entries: ${expiredEntries.length}`);
+    console.log(`Old entries (>36h): ${oldEntries.length}`);
+    console.log(`Expired entries (informational): ${expiredEntries.length}`);
     console.log(`Inactive entries: ${inactiveEntries.length}`);
     
-    const totalToCleanup = oldEntries.length + expiredEntries.length + inactiveEntries.length;
+    const totalToCleanup = oldEntries.length + inactiveEntries.length; // Only count actual cleanup criteria
     console.log(`Total cleanup candidates: ${totalToCleanup}`);
     console.log(`Remaining after cleanup: ${Math.max(0, totalEntries - totalToCleanup)}`);
 

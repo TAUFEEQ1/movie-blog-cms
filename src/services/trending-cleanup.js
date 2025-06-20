@@ -5,7 +5,7 @@
 
 'use strict';
 
-const CLEANUP_OLDER_THAN_HOURS = 24;
+const CLEANUP_OLDER_THAN_HOURS = 36;
 
 module.exports = {
   async cleanupOldTrendingEntries() {
@@ -15,32 +15,12 @@ module.exports = {
 
       console.log(`Starting cleanup of trending entries older than ${CLEANUP_OLDER_THAN_HOURS} hours (before ${cutoffDate.toISOString()})`);
 
-      // Find all trending entries older than 24 hours
+      // Find all trending entries older than 36 hours based on createdAt only
       const oldEntries = await strapi.entityService.findMany('api::trending.trending', {
         filters: {
-          $or: [
-            // Use expires_at if set
-            {
-              expires_at: {
-                $lt: new Date().toISOString()
-              }
-            },
-            // Otherwise use createdAt for entries older than 24 hours
-            {
-              $and: [
-                {
-                  expires_at: {
-                    $null: true
-                  }
-                },
-                {
-                  createdAt: {
-                    $lt: cutoffDate.toISOString()
-                  }
-                }
-              ]
-            }
-          ]
+          createdAt: {
+            $lt: cutoffDate.toISOString()
+          }
         },
         limit: 1000 // Process in batches to avoid memory issues
       });
@@ -83,10 +63,11 @@ module.exports = {
   },
 
   /**
-   * Set expiration time for new trending entries
+   * Set expiration time for new trending entries (deprecated - now using createdAt only)
    * This can be called when creating new trending entries
    */
   async setExpirationForEntry(entryId, hoursFromNow = CLEANUP_OLDER_THAN_HOURS) {
+    console.log(`Note: expires_at is no longer used for cleanup - entries are cleaned up based on createdAt after ${CLEANUP_OLDER_THAN_HOURS} hours`);
     try {
       const expirationDate = new Date();
       expirationDate.setHours(expirationDate.getHours() + hoursFromNow);
@@ -97,7 +78,7 @@ module.exports = {
         }
       });
 
-      console.log(`Set expiration for trending entry ${entryId} to ${expirationDate.toISOString()}`);
+      console.log(`Set expiration for trending entry ${entryId} to ${expirationDate.toISOString()} (informational only)`);
       return expirationDate;
     } catch (error) {
       console.error(`Failed to set expiration for trending entry ${entryId}:`, error);
