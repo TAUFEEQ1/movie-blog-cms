@@ -543,6 +543,133 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiComingSoonComingSoon extends Struct.CollectionTypeSchema {
+  collectionName: 'coming_soons';
+  info: {
+    description: 'Upcoming movies and TV shows with release dates';
+    displayName: 'Coming Soon';
+    pluralName: 'coming-soons';
+    singularName: 'coming-soon';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    air_date: Schema.Attribute.Date;
+    anticipation_rank: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
+    anticipation_score: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      >;
+    backdrop_path: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 500;
+      }>;
+    budget: Schema.Attribute.BigInteger;
+    cast: Schema.Attribute.JSON;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    director: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
+    expires_at: Schema.Attribute.DateTime;
+    genres: Schema.Attribute.JSON;
+    is_active: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    language: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 10;
+      }>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::coming-soon.coming-soon'
+    > &
+      Schema.Attribute.Private;
+    metadata: Schema.Attribute.JSON;
+    overview: Schema.Attribute.Text;
+    platform: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    popularity: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    poster_path: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 500;
+      }>;
+    production_companies: Schema.Attribute.JSON;
+    publishedAt: Schema.Attribute.DateTime;
+    release_date: Schema.Attribute.Date & Schema.Attribute.Required;
+    runtime: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    status: Schema.Attribute.Enumeration<
+      [
+        'announced',
+        'in_production',
+        'post_production',
+        'rumored',
+        'planned',
+        'canceled',
+      ]
+    > &
+      Schema.Attribute.DefaultTo<'announced'>;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
+    tmdb_id: Schema.Attribute.Integer & Schema.Attribute.Required;
+    tmdb_rating: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 10;
+          min: 0;
+        },
+        number
+      >;
+    tmdb_vote_count: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    trailer_url: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 500;
+      }>;
+    type: Schema.Attribute.Enumeration<['movie', 'tv']> &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiEpisodeEpisode extends Struct.CollectionTypeSchema {
   collectionName: 'episodes';
   info: {
@@ -888,6 +1015,56 @@ export interface ApiSpecialMomentSpecialMoment
   };
 }
 
+export interface ApiTrendingRatingTrendingRating
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'trending_ratings';
+  info: {
+    description: 'User ratings and comments for trending movies and TV shows';
+    displayName: 'Trending Rating';
+    pluralName: 'trending-ratings';
+    singularName: 'trending-rating';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    comment: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    is_notable: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    is_unfavorable: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::trending-rating.trending-rating'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    rating: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 10;
+          min: 1;
+        },
+        number
+      >;
+    tmdb_id: Schema.Attribute.Integer & Schema.Attribute.Required;
+    trending: Schema.Attribute.Relation<'manyToOne', 'api::trending.trending'>;
+    type: Schema.Attribute.Enumeration<['movie', 'tv']> &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiTrendingTrending extends Struct.CollectionTypeSchema {
   collectionName: 'trendings';
   info: {
@@ -982,6 +1159,81 @@ export interface ApiTrendingTrending extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiUserRatingUserRating extends Struct.CollectionTypeSchema {
+  collectionName: 'user_ratings';
+  info: {
+    description: 'User ratings for trending and coming soon entries';
+    displayName: 'User Rating';
+    pluralName: 'user-ratings';
+    singularName: 'user-rating';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    anticipation_level: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 5;
+          min: 1;
+        },
+        number
+      >;
+    comment: Schema.Attribute.Text;
+    content_type: Schema.Attribute.Enumeration<['trending', 'coming_soon']> &
+      Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    is_notable: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    is_unfavorable: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    is_watchlisted: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::user-rating.user-rating'
+    > &
+      Schema.Attribute.Private;
+    media_type: Schema.Attribute.Enumeration<['movie', 'tv']> &
+      Schema.Attribute.Required;
+    metadata: Schema.Attribute.JSON;
+    mood_rating: Schema.Attribute.Enumeration<
+      ['excited', 'interested', 'neutral', 'disappointed', 'avoid']
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    rating: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 10;
+          min: 1;
+        },
+        number
+      >;
+    recommendation_score: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 10;
+          min: 0;
+        },
+        number
+      >;
+    rewatch_count: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    tags: Schema.Attribute.JSON;
+    tmdb_id: Schema.Attribute.Integer & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    watched_date: Schema.Attribute.DateTime;
   };
 }
 
@@ -1502,6 +1754,7 @@ declare module '@strapi/strapi' {
       'api::article.article': ApiArticleArticle;
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
+      'api::coming-soon.coming-soon': ApiComingSoonComingSoon;
       'api::episode.episode': ApiEpisodeEpisode;
       'api::franchise.franchise': ApiFranchiseFranchise;
       'api::genre.genre': ApiGenreGenre;
@@ -1511,7 +1764,9 @@ declare module '@strapi/strapi' {
       'api::person.person': ApiPersonPerson;
       'api::quote.quote': ApiQuoteQuote;
       'api::special-moment.special-moment': ApiSpecialMomentSpecialMoment;
+      'api::trending-rating.trending-rating': ApiTrendingRatingTrendingRating;
       'api::trending.trending': ApiTrendingTrending;
+      'api::user-rating.user-rating': ApiUserRatingUserRating;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

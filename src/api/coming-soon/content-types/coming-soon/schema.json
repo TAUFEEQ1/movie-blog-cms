@@ -1,0 +1,140 @@
+{
+  "kind": "collectionType",
+  "collectionName": "coming_soons",
+  "info": {
+    "singularName": "coming-soon",
+    "pluralName": "coming-soons",
+    "displayName": "Coming Soon",
+    "description": "Upcoming movies and TV shows with release dates"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "tmdb_id": {
+      "type": "integer",
+      "required": true,
+      "unique": false
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["movie", "tv"],
+      "required": true
+    },
+    "platform": {
+      "type": "string",
+      "required": false,
+      "maxLength": 100
+    },
+    "tmdb_rating": {
+      "type": "decimal",
+      "required": false,
+      "min": 0,
+      "max": 10
+    },
+    "tmdb_vote_count": {
+      "type": "integer",
+      "required": false,
+      "min": 0
+    },
+    "genres": {
+      "type": "json",
+      "required": false
+    },
+    "poster_path": {
+      "type": "string",
+      "required": false,
+      "maxLength": 500
+    },
+    "backdrop_path": {
+      "type": "string",
+      "required": false,
+      "maxLength": 500
+    },
+    "release_date": {
+      "type": "date",
+      "required": true
+    },
+    "air_date": {
+      "type": "date",
+      "required": false
+    },
+    "trailer_url": {
+      "type": "string",
+      "required": false,
+      "maxLength": 500
+    },
+    "overview": {
+      "type": "text",
+      "required": false
+    },
+    "runtime": {
+      "type": "integer",
+      "required": false,
+      "min": 0
+    },
+    "language": {
+      "type": "string",
+      "required": false,
+      "maxLength": 10
+    },
+    "popularity": {
+      "type": "decimal",
+      "required": false,
+      "min": 0
+    },
+    "anticipation_score": {
+      "type": "decimal",
+      "required": false,
+      "min": 0,
+      "max": 100
+    },
+    "anticipation_rank": {
+      "type": "integer",
+      "required": false,
+      "min": 1
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "expires_at": {
+      "type": "datetime",
+      "required": false
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["announced", "in_production", "post_production", "rumored", "planned", "canceled"],
+      "required": false,
+      "default": "announced"
+    },
+    "production_companies": {
+      "type": "json",
+      "required": false
+    },
+    "cast": {
+      "type": "json",
+      "required": false
+    },
+    "director": {
+      "type": "string",
+      "required": false,
+      "maxLength": 255
+    },
+    "budget": {
+      "type": "biginteger",
+      "required": false
+    },
+    "metadata": {
+      "type": "json",
+      "required": false
+    }
+  }
+}
