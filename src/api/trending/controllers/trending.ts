@@ -48,45 +48,6 @@ export default factories.createCoreController('api::trending.trending', ({ strap
   },
 
   /**
-   * Get active trending items with optional filtering
-   * GET /api/trendings/active
-   */
-  async findActive(ctx: any) {
-    try {
-      const { type, platform, limit = '10' } = ctx.request.query;
-      
-      const filters: any = {
-        is_active: true,
-        $or: [
-          { expires_at: { $null: true } },
-          { expires_at: { $gt: new Date() } }
-        ]
-      };
-
-      if (type && ['movie', 'tv'].includes(type as string)) {
-        filters.type = type;
-      }
-
-      if (platform && typeof platform === 'string') {
-        filters.platform = platform;
-      }
-
-      const limitNum = typeof limit === 'string' ? parseInt(limit, 10) : 10;
-
-      const entities = await strapi.entityService.findMany('api::trending.trending', {
-        filters,
-        sort: [{ trending_rank: 'asc' }, { trending_score: 'desc' }],
-        limit: Math.min(limitNum, 50) // Cap at 50 items
-      });
-
-      return entities;
-    } catch (error) {
-      strapi.log.error('Error fetching active trending items:', error);
-      return ctx.internalServerError('Unable to fetch trending items');
-    }
-  },
-
-  /**
    * Get trending items by platform
    * GET /api/trendings/platform/:platform
    */
