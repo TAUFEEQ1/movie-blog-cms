@@ -408,5 +408,65 @@ export default factories.createCoreController('api::journal-entry.journal-entry'
       });
       ctx.internalServerError('Failed to update journal entry');
     }
+  },
+
+  /**
+   * Get trailer URL for a specific movie or TV show
+   * GET /api/journal-entries/tmdb/trailer/:type/:id
+   */
+  async getTrailer(ctx) {
+    try {
+      const { type, id } = ctx.params;
+
+      if (!type || !id) {
+        return ctx.badRequest('Type and ID are required');
+      }
+
+      if (type !== 'movie' && type !== 'tv') {
+        return ctx.badRequest('Type must be either "movie" or "tv"');
+      }
+
+      const numericId = parseInt(id, 10);
+      if (isNaN(numericId)) {
+        return ctx.badRequest('ID must be a valid number');
+      }
+
+      let trailerUrl;
+
+      try {
+        if (type === 'movie') {
+          trailerUrl = await tmdbService.getMovieTrailer(numericId);
+        } else {
+          trailerUrl = await tmdbService.getTVShowTrailer(numericId);
+        }
+
+        ctx.body = {
+          data: {
+            id: numericId,
+            type,
+            trailer_url: trailerUrl,
+            has_trailer: !!trailerUrl
+          }
+        };
+
+      } catch (error) {
+        console.error(`Error fetching ${type} trailer for ID ${numericId}:`, error);
+        
+        // Return a response even if trailer fetch fails
+        ctx.body = {
+          data: {
+            id: numericId,
+            type,
+            trailer_url: null,
+            has_trailer: false,
+            error: 'Failed to fetch trailer'
+          }
+        };
+      }
+
+    } catch (error) {
+      console.error('Trailer endpoint error:', error);
+      ctx.internalServerError('Failed to get trailer information');
+    }
   }
 }));

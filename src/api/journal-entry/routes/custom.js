@@ -23,6 +23,15 @@ module.exports = {
       },
     },
     {
+      method: 'GET',
+      path: '/journal-entries/tmdb/trailer/:type/:id',
+      handler: 'journal-entry.getTrailer',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
       method: 'POST',
       path: '/journal-entries/tmdb/create',
       handler: 'journal-entry.createFromTMDB',
