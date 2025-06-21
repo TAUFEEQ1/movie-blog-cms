@@ -5,11 +5,11 @@
 import { factories } from '@strapi/strapi';
 
 export default factories.createCoreService('api::trending.trending', ({ strapi }) => ({
-  // Override the default create method to automatically set expiration
+  // Override the default create method to automatically set expiration (informational only)
   async create(params) {
-    const DEFAULT_EXPIRATION_HOURS = 24;
+    const DEFAULT_EXPIRATION_HOURS = 36;
     
-    // Set expiration date if not provided
+    // Set expiration date if not provided (informational only - cleanup uses createdAt)
     if (params.data && !params.data.expires_at) {
       const expirationDate = new Date();
       expirationDate.setHours(expirationDate.getHours() + DEFAULT_EXPIRATION_HOURS);
@@ -19,7 +19,7 @@ export default factories.createCoreService('api::trending.trending', ({ strapi }
     // Call the default create method
     const result = await super.create(params);
     
-    console.log(`Created trending entry "${result.title}" with expiration: ${result.expires_at}`);
+    console.log(`Created trending entry "${result.title}" - will be cleaned up after ${DEFAULT_EXPIRATION_HOURS} hours based on createdAt`);
     
     return result;
   },
@@ -34,8 +34,8 @@ export default factories.createCoreService('api::trending.trending', ({ strapi }
     return super.update(entityId, params);
   },
 
-  // Custom method to extend expiration for an entry
-  async extendExpiration(entityId, additionalHours = 24) {
+  // Custom method to extend expiration for an entry (informational only)
+  async extendExpiration(entityId, additionalHours = 36) {
     const entry = await strapi.entityService.findOne('api::trending.trending', entityId);
     
     if (!entry) {
@@ -51,19 +51,19 @@ export default factories.createCoreService('api::trending.trending', ({ strapi }
       }
     });
 
-    console.log(`Extended expiration for trending entry "${entry.title}" to ${newExpiration.toISOString()}`);
+    console.log(`Extended expiration for trending entry "${entry.title}" to ${newExpiration.toISOString()} (informational only - cleanup uses createdAt)`);
     
     return updatedEntry;
   },
 
-  // Custom method to get trending entries that will expire soon
+  // Custom method to get trending entries that will expire soon (based on createdAt + 36 hours)
   async getExpiringEntries(hoursUntilExpiration = 2) {
     const cutoffDate = new Date();
-    cutoffDate.setHours(cutoffDate.getHours() + hoursUntilExpiration);
+    cutoffDate.setHours(cutoffDate.getHours() - (36 - hoursUntilExpiration)); // 36 hours - buffer
 
     const expiringEntries = await strapi.entityService.findMany('api::trending.trending', {
       filters: {
-        expires_at: {
+        createdAt: {
           $lt: cutoffDate.toISOString()
         },
         is_active: true

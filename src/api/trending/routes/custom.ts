@@ -6,16 +6,6 @@ export default {
   routes: [
     {
       method: 'GET',
-      path: '/trendings/active',
-      handler: 'trending.findActive',
-      config: {
-        auth: false,
-        policies: [],
-        middlewares: [],
-      },
-    },
-    {
-      method: 'GET',
       path: '/trendings/platform/:platform',
       handler: 'trending.findByPlatform',
       config: {

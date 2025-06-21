@@ -25,13 +25,13 @@ async function manualCleanup() {
   console.log('Starting manual cleanup of old trending entries...');
   
   try {
-    const CLEANUP_OLDER_THAN_HOURS = 24;
+    const CLEANUP_OLDER_THAN_HOURS = 36;
     const cutoffDate = new Date();
     cutoffDate.setHours(cutoffDate.getHours() - CLEANUP_OLDER_THAN_HOURS);
     
     console.log(`Looking for entries older than ${CLEANUP_OLDER_THAN_HOURS} hours (before ${cutoffDate.toISOString()})`);
 
-    // Fetch trending entries to cleanup
+    // Fetch trending entries to cleanup - only based on createdAt
     const response = await axios.get(`${STRAPI_URL}/api/trendings`, {
       headers: {
         'Authorization': `Bearer ${STRAPI_API_TOKEN}`,
@@ -39,9 +39,7 @@ async function manualCleanup() {
       },
       params: {
         'pagination[limit]': 1000,
-        'filters[$or][0][expires_at][$lt]': new Date().toISOString(),
-        'filters[$or][1][$and][0][expires_at][$null]': true,
-        'filters[$or][1][$and][1][createdAt][$lt]': cutoffDate.toISOString()
+        'filters[createdAt][$lt]': cutoffDate.toISOString()
       }
     });
 
